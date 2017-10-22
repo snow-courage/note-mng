@@ -16,7 +16,7 @@
                 location.href = "login.tpl.html";
             }
 
-            getData();
+            jumpPage();
 
             $("#addForm").click(function () {
                 layer.open({
@@ -34,6 +34,7 @@
                 getData(lookTitle);
             });
 
+
         });
 
         function getData(title) {
@@ -43,27 +44,32 @@
                 data: {title: title},
                 dataType: 'json',
                 success: function (res) {
-                    $("tbody").empty();
-                    for (var i = 0; i < res.length; i++) {
-                        var _id = res[i].id;
-                        var $tr = $("<tr></tr>");
-                        var $td1 = $("<td></td>");
-                        var $td2 = $("<td></td>");
-                        var $td3 = $("<td></td>");
-                        var $btn = $("<input type='button' value='修改' onclick='popModify(" + _id + ")'>");
-                        var $va1 = res[i].title;
-                        var $va2 = res[i].tag;
-                        $td1.html($va1);
-                        $td2.html($va2);
-                        $td3.append($btn);
-                        $tr.append($td1);
-                        $tr.append($td2);
-                        $tr.append($td3);
-                        $("tbody").append($tr);
-                    }
-                    updatePage(res.length);
+                    renderTable(res);
+                    updatePage(1);
+
                 }
-            });
+            })
+        }
+
+        function renderTable(list) {
+            $("tbody").empty();
+            for (var i = 0; i < list.length; i++) {
+                var _id = list[i].id;
+                var $tr = $("<tr></tr>");
+                var $td1 = $("<td></td>");
+                var $td2 = $("<td></td>");
+                var $td3 = $("<td></td>");
+                var $btn = $("<input type='button' value='修改' onclick='popModify(" + _id + ")'>");
+                var $va1 = list[i].title;
+                var $va2 = list[i].tag;
+                $td1.html($va1);
+                $td2.html($va2);
+                $td3.append($btn);
+                $tr.append($td1);
+                $tr.append($td2);
+                $tr.append($td3);
+                $("tbody").append($tr);
+            }
         }
 
         function popModify(id) {
@@ -78,37 +84,75 @@
         }
 
         function updatePage(total) {
+
             var $lis = $("#firstLi").siblings();
             for (var i = 0; i < $lis.length - 1; i++) {
                 $lis[i].remove();
             }
             var pageSize = 10;
             var m = Math.ceil(total / pageSize);
+            // 存储有几页到页面hidden标签
+            $("#pageCount").val(m);
             for (var i = m - 1; i >= 0; i--) {
-                $("<li><a onclick='jumpPage(this)'>" + (i + 1) + "</a></li>").insertAfter($("#firstLi"));
+                $("<li><a onclick='jumpPage("+(i+1)+")'>" + (i + 1) + "</a></li>").insertAfter($("#firstLi"));
             }
 
         }
 
-        function jumpPage(page) {
-
-            var currentPage = $(page).html();
+        /**
+         * @param currentPage 传入当前页
+         */
+        function jumpPage(currentPage) {
+            if(!currentPage){
+                currentPage = $("#current").val();
+            }
             var pageSize = 10;
+
             $.ajax({
                 type: 'POST',
-                url: '',
+                url: '/api/news/getNewsPage',
                 data: {currentPage: currentPage, pageSize: pageSize},
                 dataType: 'json',
                 success: function (res) {
-
+                    renderTable(res.list);
+                    updatePage(res.totals);
+                    // 存储当前页到页面
+                    $("#current").val(res.currentPage);
                 }
             });
+        }
+
+        /**
+         * 控制上一页 下一页
+         * @param mark
+         */
+        function jPage(mark) {
+            var current = parseInt($("#current").val()) ;
+            var pageCount = parseInt($("#pageCount").val());
+
+            if(mark === 'up'){
+                if(current != 1){
+                    current = current - 1;
+                }else{
+                    return;
+                }
+            }else{
+                if(current < pageCount){
+                    current = current + 1;
+                }else{
+                    return;
+                }
+            }
+
+            jumpPage(current);
         }
 
 
     </script>
 </head>
 <body>
+<input type="hidden" id="current" value="1">
+<input type="hidden" id="pageCount">
 <div class="container-fluid conMin" style="margin-top: 20px">
     <div class="col-xs-10 col-xs-offset-1">
         <div class="panel panel-default">
@@ -148,12 +192,12 @@
                         <ul class="pagination">
                             <li id="firstLi">
                                 <a aria-label="Previous">
-                                    <span aria-hidden="true" onclick="jumpPage(this)">上一页</span>
+                                    <span aria-hidden="true" onclick="jPage('up')">上一页</span>
                                 </a>
                             </li>
                             <li>
                                 <a aria-label="Next">
-                                    <span aria-hidden="true" onclick="jumpPage(this)">下一页</span>
+                                    <span aria-hidden="true" onclick="jPage('down')">下一页</span>
                                 </a>
                             </li>
                         </ul>
