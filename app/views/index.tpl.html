@@ -51,6 +51,7 @@
             })
         }
 
+        //渲染页面
         function renderTable(list) {
             $("tbody").empty();
             for (var i = 0; i < list.length; i++) {
@@ -59,12 +60,15 @@
                 var $td1 = $("<td></td>");
                 var $td2 = $("<td></td>");
                 var $td3 = $("<td></td>");
-                var $btn = $("<input type='button' value='修改' onclick='popModify(" + _id + ")'>");
+                var $btn1 = $("<input type='button' class='btn btn-info' value='修改/查看' onclick='popModify(" + _id + ")'>");
+                var $btn2 = $("<input type='button' class='btn btn-danger' value='删除' onclick='deleteLine(" + _id + ")'>");
                 var $va1 = list[i].title;
                 var $va2 = list[i].tag;
                 $td1.html($va1);
                 $td2.html($va2);
-                $td3.append($btn);
+                $td3.append($btn1);
+                $td3.append(' ');
+                $td3.append($btn2);
                 $tr.append($td1);
                 $tr.append($td2);
                 $tr.append($td3);
@@ -72,6 +76,22 @@
             }
         }
 
+        //增加删除功能
+        function deleteLine(id) {
+            var _id=parseInt(id);
+            $.ajax({
+                type:'POST',
+                url:'/api/news/deleteNewsById',
+                data:{id:_id},
+                dataType:'json',
+                success:function (res) {
+                    jumpPage();
+                }
+            })
+
+        }
+
+        //修改功能
         function popModify(id) {
             layer.open({
                 type: 2,
@@ -83,6 +103,7 @@
             });
         }
 
+        //渲染页码
         function updatePage(total) {
 
             var $lis = $("#firstLi").siblings();
@@ -102,6 +123,7 @@
         /**
          * @param currentPage 传入当前页
          */
+        //页面跳转功能
         function jumpPage(currentPage) {
             if(!currentPage){
                 currentPage = $("#current").val();

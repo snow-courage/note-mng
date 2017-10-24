@@ -35,7 +35,6 @@
                 var addTitle=$("#inputTitle").val();
                 var addKeyWord=$("#inputKey").val();
                 var addDetail=ue.getContent();
-                console.log(addDetail);
                 $.ajax({
                     type: 'POST',
                     url: '/api/news/insertNews',

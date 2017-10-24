@@ -28,20 +28,25 @@
                 location.href = "login.tpl.html";
             }
 
-
+            // 获取id
+            var u1 = location.href;
+            var gIndex = u1.indexOf("=");
+            var _id = parseInt(u1.substring(gIndex + 1, u1.length));
 
             <!-- 实例化编辑器 -->
-            var ue = UE.getEditor('e_container',{
-                initialFrameHeight:250
+            var ue = UE.getEditor('e_container', {
+                initialFrameHeight: 250
             });
 
+            initData(_id);
+
+
+            // todo 没有判断参数为空的情况  请加上！
             $("#sureBtn").click(function () {
-                var u1 = location.href;
-                var gIndex = u1.indexOf("=");
-                var gId = parseInt(u1.substring(gIndex + 1, u1.length));
+                var gId = _id;
                 var addTitle = $("#_inputTitle").val();
                 var addKeyWord = $("#_inputKey").val();
-                var addDetail=ue.getContent();
+                var addDetail = ue.getContent();
                 var news = {id: gId, title: addTitle, tag: addKeyWord, content: addDetail};
 
                 $.ajax({
@@ -58,8 +63,29 @@
 
             })
 
+        });
 
-        })
+        // 通过id获取当前数据
+        function initData(id) {
+            if (!id){
+                return;
+            }
+
+            $.ajax({
+                type: 'post',
+                url: '/api/news/getNewsById',
+                data: {id: id},
+                dataType: 'json',
+                success: function (res) {
+                    $("#_inputTitle").val(res.title);
+                    $("#_inputKey").val(res.tag);
+                    var ue = UE.getEditor('e_container');
+                    ue.ready(function() {
+                        ue.setContent(res.content);
+                    });
+                }
+            });
+        }
     </script>
 </head>
 <body>
@@ -79,7 +105,7 @@
 
     <div class="form-group">
         <label class="col-xs-3 col-xs-pull-1 control-label">内容:</label>
-        <div class="col-xs-8 col-xs-pull-1" >
+        <div class="col-xs-8 col-xs-pull-1">
             <!-- 加载编辑器的容器 -->
             <script id="e_container" name="content" type="text/plain"></script>
         </div>
